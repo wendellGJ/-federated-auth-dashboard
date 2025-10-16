@@ -40,37 +40,46 @@ A aplicação é dividida em três partes principais:
 *   **Servidor JSON:** `json-server`
 
 ## 📂 Estrutura de Pastas
-
 root/
-├─ package.json            ← Scripts do monorepo, workspaces
+├─ package.json
 ├─ apps/
-│  ├─ container/           ← Aplicação host (shell)
+│  ├─ container/
 │  │  ├─ src/
-│  │  ├─ public/
-│  │  ├─ vite.config.ts
-│  │  ├─ webpack.config.js (para Module Federation)
-│  │  └─ package.json
-│  ├─ mf-auth/             ← Micro-frontend de Autenticação
-│  │  ├─ src/
-│  │  │  ├─ components/
-│  │  │  ├─ context/
-│  │  │  └─ firebase.ts
+│  │  │  ├─ App.tsx
+│  │  │  ├─ main.tsx
+│  │  │  └─ vite-env.d.ts
 │  │  ├─ public/
 │  │  ├─ vite.config.ts
 │  │  ├─ webpack.config.js
 │  │  └─ package.json
-│  └─ mf-dash/             ← Micro-frontend de Dashboard
+│  ├─ mf-auth/
+│  │  ├─ src/
+│  │  │  ├─ components/
+│  │  │  │  └─ AuthButtons.tsx
+│  │  │  ├─ context/
+│  │  │  │  └─ AuthContext.tsx
+│  │  │  ├─ firebase.ts
+│  │  │  └─ App.tsx
+│  │  ├─ public/
+│  │  ├─ vite.config.ts
+│  │  ├─ webpack.config.js
+│  │  └─ package.json
+│  └─ mf-dash/
 │     ├─ src/
 │     │  ├─ components/
+│     │  │  └─ PostsTable.tsx
 │     │  ├─ store/
-│     │  └─ firebase.ts
+│     │  │  ├─ zustandStore.ts
+│     │  │  └─ rtkStore.ts
+│     │  ├─ firebase.ts
+│     │  └─ App.tsx
 │     ├─ public/
 │     ├─ vite.config.ts
 │     ├─ webpack.config.js
 │     └─ package.json
 └─ api/
-└─ db.json              ← Dados para o json-server
-└─ package.json
+   ├─ db.json
+   └─ package.json
 
 ## 🗓️ Plano de Desenvolvimento (14 Dias, ~1 Hora/Dia)
 
