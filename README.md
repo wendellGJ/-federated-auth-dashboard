@@ -39,7 +39,9 @@ A aplicação é dividida em três partes principais:
 ### `api` (Fake API)
 *   **Servidor JSON:** `json-server`
 
-## 📂 Estrutura de Pastas
+estrutura = """## 📂 Estrutura de Pastas
+
+```
 root/
 ├─ package.json
 ├─ apps/
@@ -84,7 +86,8 @@ root/
 └─ api/
    ├─ db.json
    └─ package.json
-
+```
+"""
 ## 🗓️ Plano de Desenvolvimento (14 Dias, ~1 Hora/Dia)
 
 ### Dia 1 – Kick-off & Monorepo Setup
