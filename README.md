@@ -59,6 +59,8 @@ root/
 │  │  │  ├─ context/
 │  │  │  │  └─ AuthContext.tsx
 │  │  │  ├─ firebase.ts
+│  │  │  ├─ hooks/
+│  │  │  │  └─ useProfile.ts
 │  │  │  └─ App.tsx
 │  │  ├─ public/
 │  │  ├─ vite.config.ts
@@ -71,6 +73,8 @@ root/
 │     │  ├─ store/
 │     │  │  ├─ zustandStore.ts
 │     │  │  └─ rtkStore.ts
+│     │  ├─ slices/
+│     │  │  └─ postsSlice.ts
 │     │  ├─ firebase.ts
 │     │  └─ App.tsx
 │     ├─ public/
