@@ -1,0 +1,26 @@
+{
+  "name": "microfrontend-social-auth-spa",
+  "version": "1.0.0",
+  "description": "Social Login Micro-frontend SPA",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "api"
+  ],
+  "scripts": {
+    "dev:all": "concurrently \"yarn workspace api start\" \"yarn workspace container dev\" \"yarn workspace mf-auth dev\" \"yarn workspace mf-dash dev\"",
+    "dev:api": "yarn workspace api start",
+    "dev:container": "yarn workspace container dev",
+    "dev:mf-auth": "yarn workspace mf-auth dev",
+    "dev:mf-dash": "yarn workspace mf-dash dev",
+    "build:all": "yarn workspaces foreach run build",
+    "install-all": "yarn install"
+  },
+  "devDependencies": {
+    "@types/node": "^24.8.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.3"
+  }
+}
