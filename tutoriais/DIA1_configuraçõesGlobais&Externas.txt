@@ -1,0 +1,271 @@
+🚀 DIA 1: CONFIGURAÇÃO DE MODULE FEDERATION E BASE DE AUTENTICAÇÃO
+O objetivo do Dia 1 é configurar a Module Federation entre o Container e o 
+Micro-frontend de Autenticação (mf-auth) e começar a construir a base de autenticação.
+
+ETAPA 1: INSTALAR vite-plugin-federation
+Vamos usar o vite-plugin-federation para habilitar a Module Federation no Vite.
+
+1.1 Adicione vite-plugin-federation ao container:
+
+yarn workspace container add -D @originjs/vite-plugin-federation
+
+1.2 Adicione vite-plugin-federation ao mf-auth:
+
+yarn workspace mf-auth add -D @originjs/vite-plugin-federation
+
+ETAPA 2: CONFIGURAR container/vite.config.ts (HOST)
+Vamos transformar o container no aplicativo host que irá consumir o mf-auth.
+
+2.1 Abra o arquivo apps/container/vite.config.ts e substitua todo o conteúdo por:
+
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import federation from '@originjs/vite-plugin-federation'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    federation({
+      name: 'container',
+      remotes: {
+        'mf_auth': 'http://localhost:5001/assets/remoteEntry.js', // URL do mf-auth
+      },
+      shared: ['react', 'react-dom'],
+    })
+  ],
+  build: {
+    modulePreload: false,
+    target: 'esnext',
+    minify: false,
+    cssCodeSplit: false
+  },
+  server: {
+    port: 5000, // Porta para o container
+  }
+})
+
+2.2 Salve o arquivo.
+
+ETAPA 3: CONFIGURAR mf-auth/vite.config.ts (REMOTE)
+Agora, vamos configurar o mf-auth como um micro-frontend remoto que expõe componentes.
+
+3.1 Abra o arquivo apps/mf-auth/vite.config.ts e substitua todo o conteúdo por:
+
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import federation from '@originjs/vite-plugin-federation'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    federation({
+      name: 'mf_auth',
+      filename: 'remoteEntry.js',
+      exposes: {
+        './AuthButtons': './src/components/AuthButtons.tsx',
+        './AuthContext': './src/context/AuthContext.tsx',
+        './firebase': './src/firebase.ts',
+      },
+      shared: ['react', 'react-dom'],
+    })
+  ],
+  build: {
+    modulePreload: false,
+    target: 'esnext',
+    minify: false,
+    cssCodeSplit: false
+  },
+  server: {
+    port: 5001, // Porta para o mf-auth
+  }
+})
+
+3.2 Salve o arquivo.
+
+ETAPA 4: CRIAR mf-auth/src/firebase.ts
+Este arquivo irá conter a inicialização do Firebase. Por enquanto, será um placeholder.
+
+4.1 Crie o arquivo apps/mf-auth/src/firebase.ts e adicione o seguinte conteúdo:
+
+// apps/mf-auth/src/firebase.ts
+console.log('Firebase initialized (placeholder)');
+
+export const auth = {}; // Placeholder para o objeto auth do Firebase
+export const googleProvider = {}; // Placeholder para o provedor Google do Firebase
+
+4.2 Salve o arquivo.
+
+ETAPA 5: CRIAR mf-auth/src/context/AuthContext.tsx
+Vamos criar um Context API básico para gerenciar o estado de autenticação.
+
+5.1 Crie o arquivo apps/mf-auth/src/context/AuthContext.tsx e adicione o seguinte conteúdo:
+
+// apps/mf-auth/src/context/AuthContext.tsx
+import React, { createContext, useState, useContext, ReactNode } from 'react';
+
+interface AuthContextType {
+  user: { id: string; name: string; email: string } | null;
+  login: () => void;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<{ id: string; name: string; email: string } | null>(null);
+
+  const login = () => {
+    // Lógica de login (será implementada com Firebase mais tarde)
+    setUser({ id: '123', name: 'Usuário Teste', email: 'teste@example.com' });
+    console.log('Login efetuado (dummy)');
+  };
+
+  const logout = () => {
+    // Lógica de logout (será implementada com Firebase mais tarde)
+    setUser(null);
+    console.log('Logout efetuado (dummy)');
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+5.2 Salve o arquivo.
+
+ETAPA 6: CRIAR mf-auth/src/components/AuthButtons.tsx
+Este componente irá conter botões de login e logout que usarão o AuthContext.
+
+6.1 Crie o arquivo apps/mf-auth/src/components/AuthButtons.tsx e adicione o seguinte conteúdo:
+
+// apps/mf-auth/src/components/AuthButtons.tsx
+import React from 'react';
+import { useAuth } from '../context/AuthContext';
+
+const AuthButtons: React.FC = () => {
+  const { user, login, logout } = useAuth();
+
+  return (
+    <div>
+      {user ? (
+        <>
+          <p>Olá, {user.name} ({user.email})</p>
+          <button onClick={logout} style={{ padding: '10px', margin: '5px', borderRadius: '5px', border: '1px solid #ccc' }}>
+            Logout
+          </button>
+        </>
+      ) : (
+        <button onClick={login} style={{ padding: '10px', margin: '5px', borderRadius: '5px', border: '1px solid #007bff', backgroundColor: '#007bff', color: 'white' }}>
+          Login com Google (Dummy)
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default AuthButtons;
+
+6.2 Salve o arquivo.
+
+ETAPA 7: ATUALIZAR mf-auth/src/App.tsx
+Vamos envolver a aplicação mf-auth com o AuthProvider e renderizar os AuthButtons.
+
+7.1 Abra o arquivo apps/mf-auth/src/App.tsx e substitua todo o conteúdo por:
+
+// apps/mf-auth/src/App.tsx
+import React from 'react';
+import './App.css'; // Mantenha o CSS padrão do Vite
+import { AuthProvider } from './context/AuthContext';
+import AuthButtons from './components/AuthButtons';
+
+function App() {
+  return (
+    <AuthProvider>
+      <div style={{ padding: '20px', border: '2px solid blue', borderRadius: '8px', margin: '20px', backgroundColor: '#e6f7ff' }}>
+        <h2>Micro-frontend de Autenticação</h2>
+        <AuthButtons />
+      </div>
+    </AuthProvider>
+  );
+}
+
+export default App;
+
+7.2 Salve o arquivo.
+
+ETAPA 8: ATUALIZAR container/src/App.tsx
+Agora, vamos importar e renderizar dinamicamente o AuthButtons do mf-auth no nosso container.
+
+8.1 Abra o arquivo apps/container/src/App.tsx e substitua todo o conteúdo por:
+
+// apps/container/src/App.tsx
+import React, { Suspense } from 'react';
+import './App.css'; // Mantenha o CSS padrão do Vite
+
+// Carrega o Micro-frontend de Autenticação dinamicamente
+const AuthButtons = React.lazy(() => import('mf_auth/AuthButtons'));
+
+function App() {
+  return (
+    <div style={{ padding: '30px', border: '2px solid green', borderRadius: '10px', margin: '30px', backgroundColor: '#e6ffe6' }}>
+      <h1>Container Principal (Host)</h1>
+      <Suspense fallback={<div>Carregando autenticação...</div>}>
+        <AuthButtons />
+      </Suspense>
+      {/* Aqui é onde outros micro-frontends e o restante da aplicação serão renderizados */}
+    </div>
+  );
+}
+
+export default App;
+
+8.2 Salve o arquivo.
+
+ETAPA 9: TESTAR A APLICAÇÃO
+Vamos iniciar os micro-frontends para ver a Module Federation em ação.
+
+9.1 Em um terminal, execute o mf-auth:
+
+yarn workspace mf-auth dev
+
+Você deverá ver VITE v5.x.x ready in X ms ➜ Local: http://localhost:5001/
+
+9.2 Abra um novo terminal (sem fechar o anterior) e execute o container:
+
+yarn workspace container dev
+
+Você deverá ver VITE v5.x.x ready in Y ms ➜ Local: http://localhost:5000/
+
+9.3 Abra seu navegador e acesse http://localhost:5000/.
+
+O que você deve ver:
+Você verá o Container Principal com uma borda verde, e dentro dele, o conteúdo do Micro-frontend de Autenticação com uma borda azul, contendo os botões de "Login com Google (Dummy)" e a mensagem de "Olá, Usuário Teste" após clicar no login.
+
+Se tudo estiver funcionando, você configurou com sucesso a Module Federation entre o seu host e um micro-frontend remoto!
+
+ETAPA 10: FAZER COMMIT DAS MUDANÇAS
+10.1 Pare os servidores (Ctrl + C em ambos os terminais).
+
+10.2 Volte para a raiz do projeto:
+
+cd ../..
+
+10.3 Adicione e commite as mudanças:
+
+git add .
+git commit -m "feat: Day 1 - Setup Module Federation for Container and MF-Auth, basic auth context"
+git push origin main
+
+Parabéns! O Dia 1 está completo. Você tem a estrutura básica de micro-frontends funcionando com Module Federation.

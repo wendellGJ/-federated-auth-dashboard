@@ -1,0 +1,253 @@
+A seguir está um guia 100 % local, atualizado para 2025, usando Yarn 4 (Berry) e Node 18 LTS.  
+Ele cobre:
+
+• Clonagem do repositório no seu computador  
+• Configuração do monorepo Yarn Workspaces  
+• Criação dos três projetos Vite (container, mf-auth, mf-dash)  
+• Fake-API com json-server  
+• Teste de cada workspace  
+• Primeiro commit & push  
+
+Se já existe um repositório remoto (ex: GitHub) você só precisa cloná-lo no passo 1; do contrário, comece no passo 0 para criar o repositório primeiro.  
+
+──────────────────────────────────────────
+PRÉ-REQUISITOS
+
+1. Node.js >= 18.17 LTS  
+2. Git >= 2.40  
+3. Yarn 4  
+   ```bash
+   npm i -g yarn@latest
+   yarn --version      # deve mostrar 4.x.x
+   ```
+
+──────────────────────────────────────────
+0  (OPCIONAL) – CRIAR REPOSITÓRIO REMOTO
+
+(use se ainda não criou o repo)
+
+```bash
+# no GitHub → New repository → microfrontend-social-auth-spa (public, sem README)
+# copie a URL SSH ou HTTPS, ex:
+# git@github.com:seu-user/microfrontend-social-auth-spa.git
+```
+
+──────────────────────────────────────────
+1  CLONAR O REPOSITÓRIO (OU INICIAR DO ZERO)
+
+```bash
+# clone se já existir
+git clone git@github.com:seu-user/microfrontend-social-auth-spa.git
+cd microfrontend-social-auth-spa
+
+# …ou inicie vazio
+mkdir microfrontend-social-auth-spa && cd $_
+git init
+```
+
+──────────────────────────────────────────
+2  INICIALIZAR MONOREPO
+
+```bash
+yarn init -y
+```
+
+Edite o package.json da raiz:
+
+```json
+{
+  "name": "microfrontend-social-auth-spa",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "api"
+  ],
+  "scripts": {
+    "dev:all": "concurrently \"yarn workspace api start\" \"yarn workspace container dev\" \"yarn workspace mf-auth dev\" \"yarn workspace mf-dash dev\"",
+    "dev:api": "yarn workspace api start",
+    "dev:container": "yarn workspace container dev",
+    "dev:mf-auth": "yarn workspace mf-auth dev",
+    "dev:mf-dash": "yarn workspace mf-dash dev",
+    "build:all": "yarn workspaces foreach run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
+```
+
+Instale as dependências de desenvolvimento da raiz:
+
+```bash
+yarn add -W concurrently
+```
+
+──────────────────────────────────────────
+3  CRIAR ESTRUTURA DE PASTAS
+
+```bash
+mkdir -p apps/{container,mf-auth,mf-dash} api
+```
+
+──────────────────────────────────────────
+4  GERAR PROJETOS VITE + TS
+
+A seguir, crie cada projeto dentro da pasta correta (Vite já grava um package.json e portanto o Yarn reconhece o workspace automaticamente).
+
+Container (host):
+
+```bash
+cd apps/container
+yarn create vite . --template react-ts
+yarn       # instala deps do container
+cd ../..
+```
+
+MF-Auth:
+
+```bash
+cd apps/mf-auth
+yarn create vite . --template react-ts
+yarn
+cd ../..
+```
+
+MF-Dash:
+
+```bash
+cd apps/mf-dash
+yarn create vite . --template react-ts
+yarn
+cd ../..
+```
+
+──────────────────────────────────────────
+5  CONFIGURAR API FAKE
+
+```bash
+cd api
+yarn init -y
+yarn add json-server
+```
+
+Edite api/package.json:
+
+```json
+{
+  "name": "api",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "json-server --watch db.json --port 3000"
+  },
+  "dependencies": {
+    "json-server": "^0.17.4"
+  }
+}
+```
+
+Crie api/db.json com alguns dados iniciais:
+
+```
+{
+  "users": [
+    { "id": "1", "uid": "user-001", "name": "João Silva", "email": "joao@example.com" },
+    { "id": "2", "uid": "user-002", "name": "Maria Santos", "email": "maria@example.com" }
+  ],
+  "posts": [
+    { "id": "1", "title": "Entendendo Micro-frontends", "userId": "1" }
+  ],
+  "profile": [
+    { "uid": "user-001", "bio": "Dev full-stack" }
+  ]
+}
+```
+
+──────────────────────────────────────────
+6  INSTALAR DEPENDÊNCIAS DE CADA WORKSPACE
+
+Container (roteamento):
+
+```bash
+yarn workspace container add react-router-dom
+yarn workspace container add -D @types/react-router-dom
+```
+
+MF-Auth (auth + queries):
+
+```bash
+yarn workspace mf-auth add firebase @tanstack/react-query
+```
+
+MF-Dash (estado):
+
+```bash
+yarn workspace mf-dash add zustand @reduxjs/toolkit react-redux
+yarn workspace mf-dash add -D @types/react-redux
+```
+
+Dependências globais de tipos:
+
+```bash
+yarn add -W -D typescript @types/react @types/react-dom @types/node
+```
+
+──────────────────────────────────────────
+7  VERIFICAR QUE OS WORKSPACES FORAM DETECTADOS
+
+```bash
+yarn workspaces list   # Yarn 4
+```
+
+Resultado esperado:
+
+```
+api
+container
+mf-auth
+mf-dash
+```
+
+Se aparecer só `api`, rode:
+
+```bash
+yarn install   # força re-link
+```
+
+──────────────────────────────────────────
+8  TESTAR JSON-SERVER
+
+```bash
+yarn workspace api start
+# Abra outro terminal e:
+curl http://localhost:3000/users
+```
+
+──────────────────────────────────────────
+9  TESTAR O CONTAINER
+
+```bash
+yarn workspace container dev
+# Acesse http://localhost:5173
+```
+
+(Os MFs ainda são tela em branco; isso confirma que o workspace compila.)
+
+──────────────────────────────────────────
+10  GIT – COMMIT INICIAL
+
+```bash
+git add .
+git commit -m "feat: monorepo local com Vite, API fake e Yarn 4"
+# configure seu remote se ainda não existir
+git remote add origin git@github.com:seu-user/microfrontend-social-auth-spa.git
+git push -u origin main
+```
+
+──────────────────────────────────────────
+PRÓXIMOS PASSOS
+
+1. Configurar Webpack Module Federation (ou `vite-plugin-federation`) nos três projetos.  
+2. Adicionar Firebase Auth ao mf-auth.  
+3. Criar rotas protegidas no container.  
+4. Popular mf-dash com Zustand + RTK e consumir `/posts`.  
