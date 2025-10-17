@@ -1,35 +1,26 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { Suspense } from 'react';
+import './App.css';
+
+const AuthButtons = React.lazy(() => import('mf_auth/AuthButtons'));
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div
+      style={{
+        padding: '30px',
+        border: '2px solid green',
+        borderRadius: '10px',
+        margin: '30px',
+        backgroundColor: '#e6ffe6',
+      }}
+    >
+      <h1>Container Principal (Host)</h1>
+      <Suspense fallback={<div>Carregando autenticação...</div>}>
+        <AuthButtons />
+      </Suspense>
+      {/* Aqui é onde outros micro-frontends e o restante da aplicação serão renderizados */}
+    </div>
+  );
 }
 
-export default App
+export default App;
